@@ -48,7 +48,6 @@ The app assumes Python 3 is available and that the dependencies listed in starte
 
 From the starter directory, with the virtual environment activated:
 
-cd starter
 python -m pytest tests
 
 This project uses pytest for both backend logic and route-level behavior.
@@ -65,6 +64,7 @@ This project uses pytest for both backend logic and route-level behavior.
 - tests/test_sudoku_logic.py: Sudoku generation and validation tests, including puzzle uniqueness and clue-count checks.
 - .github/copilot-instructions.md: project instructions used to guide Copilot-driven development.
 - Screenshots/: milestone images documenting the design and review process.
+- prompts.json: the Copilot prompts used in this project, kept as reusable templates, with the mode, milestone and matching screenshots for each.
 
 ## 6. Design notes
 
@@ -91,8 +91,7 @@ Milestone 6: Local scoreboard and storage. Copilot assisted with the top-ten sco
 
 Milestone 7: Theme and responsive layout. The final UI polish focused on dark mode, alternated 3x3 box colours, and mobile-friendly sizing. Screenshots: 07_layout_theme_prompt.png, 07_dark_mode_ui.png, 07_light_mode_ui.png, 07_layout_theme_result-1.png, 07_layout_theme_result-2.png, 08_grid_colors_prompt.png, 08_grid_colors_result-1.png, 08_grid_colors_result-2.png, 08_mobile_view_ui.png.
 
-Milestone 8: Number tracking (stand-out feature).
-Screenshots: 09_number_tracking_prompt.png, 09_number_tracking_result.png, 09_number_tracking_ui.png
+Milestone 8: Number tracking (stand-out feature). Nine digit buttons under the board show how many of each digit remain, highlight every matching cell when clicked, and are marked complete once all nine are placed. It uses a single delegated click handler and updates after input, hints and new games. Screenshots: 09_number_tracking_prompt.png, 09_number_tracking_result.png, 09_number_tracking_ui.png.
 
 ### Suggestions I evaluated, changed or rejected
 
@@ -100,7 +99,7 @@ Screenshots: 09_number_tracking_prompt.png, 09_number_tracking_result.png, 09_nu
 - Difficulty clue counts (reviewed and tuned). I left a review comment above DIFFICULTY_CLUES in sudoku_logic.py (Screenshots/03_difficulty_comment_review.png). I chose 28 clues for Hard after timing generation at 40, 32, 28 and 26 clues (Screenshots/02_unique_solution_timing.png), because 26 clues was noticeably slower.
 - Missing import in generated tests (fixed). In two milestones Copilot generated a test file that used pytest without importing it and failed with a NameError. I had Copilot fix it and re-run the suite.
 - Hint test assumption (corrected). Copilot's first /hint test assumed the hint would land on the first empty cell. I had it change the assertion to check that the returned cell is editable and that its value matches the solution.
-- Unverified Copilot validation (checked by hand). For number tracking, Copilot reported that its browser check was unavailable and that its pytest run hung and was stopped. I ran the full test suite and tested the tracker in the browser myself, in light and dark mode and at 360px, before accepting the change.
+
 
 ## 8. Screenshots of the finished game
 
