@@ -1,3 +1,5 @@
+import pytest
+
 import sudoku_logic
 
 
@@ -51,3 +53,23 @@ def test_generate_puzzle_has_requested_clues_and_matches_solution():
         for puzzle_cell, solution_cell in zip(puzzle_row, solution_row):
             if puzzle_cell != sudoku_logic.EMPTY:
                 assert puzzle_cell == solution_cell
+
+
+@pytest.mark.parametrize("clues", [35, 28])
+def test_generated_puzzles_have_exactly_one_solution(clues):
+    for _ in range(3):
+        puzzle, _ = sudoku_logic.generate_puzzle(clues)
+
+        assert sudoku_logic.count_solutions(puzzle, 2) == 1
+
+
+def test_count_solutions_stops_after_multiple_solutions():
+    board = sudoku_logic.create_empty_board()
+
+    assert sudoku_logic.count_solutions(board, limit=2) == 2
+
+
+@pytest.mark.parametrize("clues", [16, 82])
+def test_generate_puzzle_rejects_out_of_range_clues(clues):
+    with pytest.raises(ValueError):
+        sudoku_logic.generate_puzzle(clues)
