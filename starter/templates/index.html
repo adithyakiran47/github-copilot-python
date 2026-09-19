@@ -2,41 +2,72 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sudoku Game</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <div id="sudoku-board"></div>
-  <div class="controls">
-    <label for="difficulty">Difficulty</label>
-    <select id="difficulty">
-      <option value="easy">Easy</option>
-      <option value="medium" selected>Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-    <button id="new-game">New Game</button>
-    <button id="check-solution">Check</button>
-    <button id="hint">Hint</button>
-    <span>Hints: <span id="hint-count">0</span></span>
-    <span id="timer">00:00</span>
-    <span id="message"></span>
-  </div>
-  <div id="score-entry" hidden>
-    <label for="score-name">Name</label>
-    <input id="score-name" type="text" maxlength="20">
-    <button id="save-score">Save</button>
-  </div>
-  <section class="scoreboard" aria-labelledby="scoreboard-heading">
-    <h2 id="scoreboard-heading">Top 10</h2>
-    <table>
-      <thead>
-        <tr><th>Rank</th><th>Name</th><th>Time</th><th>Difficulty</th><th>Hints</th></tr>
-      </thead>
-      <tbody id="scoreboard-body"></tbody>
-    </table>
-    <p id="scoreboard-status" role="status"></p>
-  </section>
+  <header class="page-header">
+    <h1>Sudoku</h1>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+      <span class="theme-icon" aria-hidden="true">&#9790;</span>
+    </button>
+  </header>
+
+  <main class="game-shell">
+    <div class="game-layout">
+      <section class="control-panel" aria-labelledby="game-options-heading">
+        <p class="panel-kicker">Game</p>
+        <h2 id="game-options-heading">Choose your pace</h2>
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button id="new-game" class="button button-primary" type="button">New Game</button>
+      </section>
+
+      <section class="board-panel" aria-labelledby="board-heading">
+        <h2 id="board-heading" class="visually-hidden">Sudoku board</h2>
+        <div id="sudoku-board"></div>
+        <div class="board-meta" aria-label="Game status">
+          <div><span class="meta-label">Time</span><strong id="timer">00:00</strong></div>
+          <div><span class="meta-label">Hints</span><strong id="hint-count">0</strong></div>
+        </div>
+        <p id="message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="action-panel" aria-labelledby="actions-heading">
+        <p class="panel-kicker">Moves</p>
+        <h2 id="actions-heading">Make a play</h2>
+        <button id="hint" class="button button-secondary" type="button">Hint</button>
+        <button id="check-solution" class="button button-secondary" type="button">Check</button>
+      </section>
+    </div>
+
+    <div id="score-entry" hidden>
+      <label for="score-name">Name</label>
+      <input id="score-name" type="text" maxlength="20">
+      <button id="save-score" class="button button-primary" type="button">Save</button>
+    </div>
+
+    <section class="scoreboard" aria-labelledby="scoreboard-heading">
+      <div class="section-heading">
+        <p class="panel-kicker">Records</p>
+        <h2 id="scoreboard-heading">Top 10</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Rank</th><th>Name</th><th>Time</th><th>Difficulty</th><th>Hints</th></tr>
+          </thead>
+          <tbody id="scoreboard-body"></tbody>
+        </table>
+      </div>
+      <p id="scoreboard-status" role="status"></p>
+    </section>
+  </main>
   <script src="/static/scoreboard.js"></script>
   <script src="/static/main.js"></script>
 </body>

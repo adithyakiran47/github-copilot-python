@@ -238,8 +238,40 @@ async function requestHint() {
   msg.innerText = '';
 }
 
+function setTheme(isDark) {
+  document.body.classList.toggle('dark-mode', isDark);
+  const toggle = document.getElementById('theme-toggle');
+  const icon = toggle.querySelector('.theme-icon');
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  icon.innerHTML = isDark ? '&#9728;' : '&#9790;';
+  toggle.setAttribute('aria-label', label);
+  toggle.setAttribute('title', label);
+}
+
+function initializeTheme() {
+  let savedTheme = null;
+  try {
+    savedTheme = localStorage.getItem('sudoku-theme');
+  } catch (error) {
+    savedTheme = null;
+  }
+  const isDark = savedTheme
+    ? savedTheme === 'dark'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(isDark);
+}
+
 // Wire buttons
 window.addEventListener('load', () => {
+  initializeTheme();
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const isDark = !document.body.classList.contains('dark-mode');
+    setTheme(isDark);
+    try {
+      localStorage.setItem('sudoku-theme', isDark ? 'dark' : 'light');
+    } catch (error) {
+    }
+  });
   renderScores(loadScores());
   updateScoreboardStatus();
   document.getElementById('sudoku-board').addEventListener('input', (event) => {
