@@ -17,6 +17,8 @@
     --color-warning: #8a5100;
     --color-warning-soft: #fff0c7;
     --color-shadow: rgba(23, 32, 51, 0.12);
+    --box-a: #edf5ff;
+    --box-b: #f7f3ff;
 }
 
 body.dark-mode {
@@ -38,6 +40,8 @@ body.dark-mode {
     --color-warning: #ffd27a;
     --color-warning-soft: #554018;
     --color-shadow: rgba(0, 0, 0, 0.3);
+    --box-a: #1d2b3a;
+    --box-b: #23354a;
 }
 
 * { box-sizing: border-box; }
@@ -45,7 +49,8 @@ body.dark-mode {
 body {
     min-height: 100vh;
     margin: 0;
-    padding: 0 24px 48px;
+    padding: 0 clamp(12px, 3vw, 24px) 48px;
+    overflow-x: hidden;
     color: var(--color-text);
     background: var(--color-background);
     font-family: Georgia, 'Times New Roman', serif;
@@ -85,6 +90,22 @@ h2 { margin: 0 0 18px; font-size: 1.2rem; }
     gap: clamp(24px, 5vw, 72px);
     align-items: center;
     padding: 28px 0 40px;
+}
+
+@media (max-width: 700px) {
+    .game-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .control-panel,
+    .action-panel {
+        text-align: center;
+    }
+
+    .board-panel {
+        order: -1;
+    }
 }
 
 .control-panel,
@@ -141,7 +162,8 @@ select,
 
 #sudoku-board {
     display: inline-block;
-    width: min(100%, 430px);
+    width: min(92vw, 480px);
+    max-width: 100%;
     border: 3px solid var(--color-grid);
     background: var(--color-surface);
     box-shadow: 0 10px 24px var(--color-shadow);
@@ -157,11 +179,14 @@ select,
     border: 1px solid var(--color-border);
     text-align: center;
     color: var(--color-text);
-    font: 1.2rem 'Trebuchet MS', sans-serif;
+    font: clamp(0.9rem, 2.35vw, 2rem) 'Trebuchet MS', sans-serif;
     outline: none;
     background: var(--color-surface);
     transition: background 0.2s;
 }
+
+.sudoku-cell.box-a { background: var(--box-a); }
+.sudoku-cell.box-b { background: var(--box-b); }
 
 .sudoku-cell:focus {
     background: var(--color-accent-soft);
@@ -169,6 +194,7 @@ select,
 
 .sudoku-cell.prefilled {
     background: var(--color-surface-muted);
+    color: var(--color-text);
     font-weight: bold;
 }
 
@@ -180,21 +206,22 @@ select,
 
 .sudoku-cell.incorrect {
     background: var(--color-error-soft);
+    color: var(--color-error);
+    font-weight: bold;
 }
 
 .sudoku-cell.conflict {
     background: var(--color-warning-soft);
+    color: var(--color-warning);
     box-shadow: inset 0 0 0 2px var(--color-warning);
 }
 
-.sudoku-cell:nth-child(3),
-.sudoku-cell:nth-child(6) {
-    border-right: 3px solid var(--color-grid);
+.sudoku-cell:nth-child(3n) {
+    box-shadow: inset -2px 0 0 var(--color-grid), inset 0 0 0 1px var(--color-border);
 }
 
-.sudoku-row:nth-child(3) .sudoku-cell,
-.sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 3px solid var(--color-grid);
+.sudoku-row:nth-child(3n) .sudoku-cell {
+    box-shadow: inset 0 -2px 0 var(--color-grid), inset 0 0 0 1px var(--color-border);
 }
 
 #message {

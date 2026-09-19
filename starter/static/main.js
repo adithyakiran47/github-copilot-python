@@ -72,6 +72,8 @@ function createBoardElement() {
       input.type = 'text';
       input.maxLength = 1;
       input.className = 'sudoku-cell';
+      const boxClass = ((Math.floor(i / 3) + Math.floor(j / 3)) % 2 === 0) ? 'box-a' : 'box-b';
+      input.classList.add(boxClass);
       input.dataset.row = i;
       input.dataset.col = j;
       rowDiv.appendChild(input);
