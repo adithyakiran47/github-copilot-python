@@ -130,3 +130,33 @@ def generate_puzzle(clues: int = 35) -> tuple[Board, Board]:
             return puzzle, solution
 
     raise ValueError(f"could not generate a puzzle with {clues} clues after 20 attempts")
+
+
+def is_valid_board(board: object) -> bool:
+    """Return whether a value is a valid 9x9 board of digits from 0 to 9."""
+    return (
+        isinstance(board, list)
+        and len(board) == SIZE
+        and all(
+            isinstance(row, list)
+            and len(row) == SIZE
+            and all(
+                isinstance(value, int)
+                and not isinstance(value, bool)
+                and EMPTY <= value <= SIZE
+                for value in row
+            )
+            for row in board
+        )
+    )
+
+
+def find_hint(puzzle: Board, solution: Board, board: Board) -> tuple[int, int, int] | None:
+    """Return an editable empty or incorrect cell and its solution value."""
+    candidates = [
+        (row, col, solution[row][col])
+        for row in range(SIZE)
+        for col in range(SIZE)
+        if puzzle[row][col] == EMPTY and board[row][col] != solution[row][col]
+    ]
+    return random.choice(candidates) if candidates else None

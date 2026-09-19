@@ -40,21 +40,7 @@ def check_solution():
         return jsonify({'error': 'Board must be a 9x9 grid.'}), 400
 
     board = data['board']
-    if (
-        len(board) != sudoku_logic.SIZE
-        or any(
-            not isinstance(row, list)
-            or len(row) != sudoku_logic.SIZE
-            or any(
-                isinstance(value, bool)
-                or not isinstance(value, int)
-                or value < sudoku_logic.EMPTY
-                or value > sudoku_logic.SIZE
-                for value in row
-            )
-            for row in board
-        )
-    ):
+    if not sudoku_logic.is_valid_board(board):
         return jsonify({'error': 'Board must be a 9x9 grid of digits from 0 to 9.'}), 400
 
     incorrect = []
@@ -69,6 +55,25 @@ def check_solution():
         for j in range(sudoku_logic.SIZE)
     )
     return jsonify({'incorrect': incorrect, 'complete': complete})
+
+
+@app.route('/hint', methods=['POST'])
+def get_hint():
+    """Return the solution value for one unfinished editable cell."""
+    if CURRENT.get('solution') is None:
+        return jsonify({'error': 'No game in progress'}), 400
+
+    data = request.get_json(silent=True)
+    board = data.get('board') if isinstance(data, dict) else None
+    if not sudoku_logic.is_valid_board(board):
+        return jsonify({'error': 'Board must be a 9x9 grid of digits from 0 to 9.'}), 400
+
+    hint = sudoku_logic.find_hint(CURRENT['puzzle'], CURRENT['solution'], board)
+    if hint is None:
+        return jsonify({'error': 'There is nothing to hint.'}), 400
+
+    row, col, value = hint
+    return jsonify({'row': row, 'col': col, 'value': value})
 
 if __name__ == '__main__':
     app.run(debug=True)

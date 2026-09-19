@@ -74,3 +74,22 @@ def test_post_check_rejects_invalid_board_shape(client):
 
     assert response.status_code == 400
     assert response.get_json()['error']
+
+
+def test_post_hint_returns_solution_value_for_empty_cell(client):
+    client.get('/new')
+    from app import CURRENT
+
+    response = client.post('/hint', json={'board': CURRENT['puzzle']})
+
+    assert response.status_code == 200
+    hint = response.get_json()
+    assert CURRENT['puzzle'][hint['row']][hint['col']] == sudoku_logic.EMPTY
+    assert hint['value'] == CURRENT['solution'][hint['row']][hint['col']]
+
+
+def test_post_hint_rejects_request_without_game(client):
+    response = client.post('/hint', json={'board': sudoku_logic.create_empty_board()})
+
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'No game in progress'
