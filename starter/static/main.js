@@ -31,6 +31,36 @@ function stopTimer() {
   timerInterval = null;
 }
 
+function renderScores(scores) {
+  const body = document.getElementById('scoreboard-body');
+  body.textContent = '';
+  scores.forEach((score, index) => {
+    const row = document.createElement('tr');
+    [index + 1, score.name, formatTime(score.seconds), score.difficulty, score.hints]
+      .forEach((value) => {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+    body.appendChild(row);
+  });
+}
+
+function showScoreEntry() {
+  document.getElementById('score-entry').hidden = false;
+  document.getElementById('score-name').focus();
+}
+
+function hideScoreEntry() {
+  document.getElementById('score-entry').hidden = true;
+  document.getElementById('score-name').value = '';
+}
+
+function updateScoreboardStatus() {
+  const status = document.getElementById('scoreboard-status');
+  status.textContent = window.scoreboardStorageError || '';
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -113,6 +143,7 @@ async function newGame() {
       throw new Error(data.error || 'Unable to start a new game.');
     }
     renderPuzzle(data.puzzle);
+    hideScoreEntry();
     msg.style.color = '';
     msg.innerText = '';
   } catch (error) {
@@ -155,7 +186,10 @@ async function checkSolution() {
   if (data.complete) {
     stopTimer();
     msg.style.color = '#388e3c';
-    msg.innerText = `Congratulations! Solved in ${formatTime(elapsedSeconds)} with ${hintCount} hints.`;
+    msg.textContent = `Congratulations! Solved in ${formatTime(elapsedSeconds)} with ${hintCount} hints.`;
+    const scores = loadScores();
+    if (isTopTen(elapsedSeconds, scores, hintCount)) showScoreEntry();
+    updateScoreboardStatus();
   } else if (incorrect.size === 0) {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Keep going! The board is incomplete.';
@@ -206,6 +240,8 @@ async function requestHint() {
 
 // Wire buttons
 window.addEventListener('load', () => {
+  renderScores(loadScores());
+  updateScoreboardStatus();
   document.getElementById('sudoku-board').addEventListener('input', (event) => {
     if (!event.target.matches('input.sudoku-cell') || event.target.disabled) return;
     event.target.value = event.target.value.replace(/[^1-9]/g, '').slice(0, 1);
@@ -215,6 +251,22 @@ window.addEventListener('load', () => {
   document.getElementById('difficulty').addEventListener('change', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', requestHint);
+  document.getElementById('save-score').addEventListener('click', () => {
+    const scores = loadScores();
+    const entry = {
+      name: document.getElementById('score-name').value.trim() || 'Anonymous',
+      seconds: elapsedSeconds,
+      difficulty: document.getElementById('difficulty').value,
+      hints: hintCount,
+      date: new Date().toISOString()
+    };
+    const updatedScores = addScore(entry, scores);
+    if (saveScores(updatedScores)) {
+      renderScores(updatedScores);
+      hideScoreEntry();
+    }
+    updateScoreboardStatus();
+  });
   // initialize
   newGame();
 });

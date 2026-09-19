@@ -94,3 +94,48 @@ button:hover {
     font-size: 16px;
     color: #d32f2f;
 }
+
+#score-entry,
+.scoreboard {
+    width: min(700px, 90%);
+    margin: 24px auto;
+}
+
+#score-entry input {
+    padding: 8px;
+    margin: 0 8px;
+    font-size: 16px;
+}
+
+.scoreboard {
+    color: #333;
+}
+
+.scoreboard table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.scoreboard th,
+.scoreboard td {
+    padding: 8px;
+    border: 1px solid #bbb;
+}
+
+.scoreboard th {
+    background: #e0e0e0;
+}
+
+#scoreboard-status {
+    color: #b45309;
+}
+
+@media (prefers-color-scheme: dark) {
+    body { background: #202124; color: #f1f3f4; }
+    h1, .scoreboard { color: #f1f3f4; }
+    #sudoku-board, .scoreboard table { background: #303134; }
+    .sudoku-cell { background: #3c4043; color: #f1f3f4; border-color: #70757a; }
+    .sudoku-cell.prefilled, .scoreboard th { background: #5f6368; color: #fff; }
+    .scoreboard th, .scoreboard td { border-color: #70757a; }
+}

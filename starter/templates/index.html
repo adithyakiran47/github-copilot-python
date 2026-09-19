@@ -22,6 +22,22 @@
     <span id="timer">00:00</span>
     <span id="message"></span>
   </div>
+  <div id="score-entry" hidden>
+    <label for="score-name">Name</label>
+    <input id="score-name" type="text" maxlength="20">
+    <button id="save-score">Save</button>
+  </div>
+  <section class="scoreboard" aria-labelledby="scoreboard-heading">
+    <h2 id="scoreboard-heading">Top 10</h2>
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Name</th><th>Time</th><th>Difficulty</th><th>Hints</th></tr>
+      </thead>
+      <tbody id="scoreboard-body"></tbody>
+    </table>
+    <p id="scoreboard-status" role="status"></p>
+  </section>
+  <script src="/static/scoreboard.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>
