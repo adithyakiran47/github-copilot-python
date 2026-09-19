@@ -10,6 +10,20 @@ def test_get_index_renders_game_page(client):
     assert b'Sudoku Game' in response.data
 
 
+def test_index_has_accessible_game_controls(client):
+    response = client.get('/')
+    script_response = client.get('/static/main.js')
+
+    assert response.status_code == 200
+    assert script_response.status_code == 200
+    html = response.get_data(as_text=True)
+    script = script_response.get_data(as_text=True)
+    assert 'aria-label="Difficulty"' in html
+    assert 'aria-live="polite"' in html
+    assert 'inputmode' in script
+    assert 'numeric' in script
+
+
 @pytest.mark.parametrize('difficulty, clues', [('easy', 40), ('medium', 32), ('hard', 28)])
 def test_get_new_returns_puzzle_for_difficulty(client, difficulty, clues):
     response = client.get(f'/new?difficulty={difficulty}')

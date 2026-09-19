@@ -168,6 +168,13 @@ select,
 .button-secondary:hover,
 .button-secondary:focus-visible { color: var(--color-on-accent); }
 
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
 #sudoku-board {
     display: inline-block;
     width: min(92vw, 480px);
@@ -277,10 +284,15 @@ select,
 #message {
     min-height: 24px;
     margin: 16px 0 0;
-    color: var(--color-error);
+    color: var(--color-text);
     font-family: 'Trebuchet MS', sans-serif;
     font-size: 0.9rem;
 }
+
+#message.status-error { color: var(--color-error); }
+#message.status-success { color: var(--color-success); }
+#message.status-warning { color: var(--color-warning); }
+#message.status-info { color: var(--color-text); }
 
 .board-meta {
     display: flex;

@@ -5,9 +5,8 @@ SIZE = 9
 EMPTY = 0
 Board = list[list[int]]
 
-# Reviewed Copilot's suggestion: it benchmarked 26 clues at ~0.7s/puzzle, and my own timing
-# (10 puzzles: 40 clues 0.83s, 32 clues 1.63s, 28 clues 4.42s, 26 clues 6.48s) showed 26 is
-# noticeably slower. Hard uses 28 clues so New Game stays snappy.
+# Copilot's benchmark reported ~0.7s per 26-clue puzzle (7.0s for 10). My own timings for 10 puzzles:
+# 40 clues 0.83s, 32 clues 1.63s, 28 clues 4.42s, 26 clues 6.48s. I judged 26 too slow for New Game, so Hard uses 28.
 DIFFICULTY_CLUES = {"easy": 40, "medium": 32, "hard": 28}
 
 

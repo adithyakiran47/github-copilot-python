@@ -32,6 +32,13 @@ function stopTimer() {
   timerInterval = null;
 }
 
+function setMessage(text, tone = 'info') {
+  const msg = document.getElementById('message');
+  msg.textContent = text;
+  msg.classList.remove('status-info', 'status-success', 'status-error', 'status-warning');
+  msg.classList.add(`status-${tone}`);
+}
+
 function renderScores(scores) {
   const body = document.getElementById('scoreboard-body');
   body.textContent = '';
@@ -72,6 +79,9 @@ function createBoardElement() {
       const input = document.createElement('input');
       input.type = 'text';
       input.maxLength = 1;
+      input.inputMode = 'numeric';
+      input.setAttribute('inputmode', 'numeric');
+      input.setAttribute('aria-label', `Row ${i + 1}, column ${j + 1}`);
       input.className = 'sudoku-cell';
       const boxClass = ((Math.floor(i / 3) + Math.floor(j / 3)) % 2 === 0) ? 'box-a' : 'box-b';
       input.classList.add(boxClass);
@@ -181,11 +191,9 @@ async function newGame() {
     }
     renderPuzzle(data.puzzle);
     hideScoreEntry();
-    msg.style.color = '';
-    msg.innerText = '';
+    setMessage('', 'info');
   } catch (error) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = error.message || 'Network error. Please try again.';
+    setMessage(`Error: ${error.message || 'Network error. Please try again.'}`, 'error');
   }
 }
 
@@ -209,8 +217,7 @@ async function checkSolution() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = data.error;
+    setMessage(`Error: ${data.error}`, 'error');
     return;
   }
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
@@ -222,17 +229,14 @@ async function checkSolution() {
   }
   if (data.complete) {
     stopTimer();
-    msg.style.color = '#388e3c';
-    msg.textContent = `Congratulations! Solved in ${formatTime(elapsedSeconds)} with ${hintCount} hints.`;
+    setMessage(`Success: Congratulations! Solved in ${formatTime(elapsedSeconds)} with ${hintCount} hints.`, 'success');
     const scores = loadScores();
     if (isTopTen(elapsedSeconds, scores, hintCount)) showScoreEntry();
     updateScoreboardStatus();
   } else if (incorrect.size === 0) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = 'Keep going! The board is incomplete.';
+    setMessage('Warning: Keep going! The board is incomplete.', 'warning');
   } else {
-    msg.style.color = '#d32f2f';
-    msg.innerText = 'Some cells are incorrect.';
+    setMessage('Error: Some cells are incorrect.', 'error');
   }
 }
 
@@ -258,8 +262,7 @@ async function requestHint() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (!res.ok) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = data.error || 'Unable to get a hint.';
+    setMessage(`Error: ${data.error || 'Unable to get a hint.'}`, 'error');
     return;
   }
 
@@ -273,7 +276,7 @@ async function requestHint() {
   document.getElementById('hint-count').innerText = hintCount;
   updateConflicts();
   renderDigitTracker();
-  msg.innerText = '';
+  setMessage('Hint: A valid value has been filled in.', 'info');
 }
 
 function setTheme(isDark) {
@@ -312,6 +315,9 @@ window.addEventListener('load', () => {
   });
   renderScores(loadScores());
   updateScoreboardStatus();
+  // Copilot suggested a custom board keyboard model (arrow-key navigation, Enter/Space activation, selected-cell state). 
+  // I did not apply it: the cells are native <input> elements that are already reachable and usable with Tab, 
+  // and a custom key handler is a large change that risks breaking this delegated input listener.
   document.getElementById('sudoku-board').addEventListener('input', (event) => {
     if (!event.target.matches('input.sudoku-cell') || event.target.disabled) return;
     event.target.value = event.target.value.replace(/[^1-9]/g, '').slice(0, 1);

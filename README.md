@@ -62,6 +62,7 @@ This project uses pytest for both backend logic and route-level behavior.
 - static/styles.css: board styling, alternating 3x3 grid colours, dark theme, and responsive layout rules.
 - tests/test_app.py: Flask route tests for puzzle generation, validation, hints, and the interaction contract.
 - tests/test_sudoku_logic.py: Sudoku generation and validation tests, including puzzle uniqueness and clue-count checks.
+- instruction.md: visible copy of the Copilot instruction file (the copy Copilot loads automatically is .github/copilot-instructions.md).
 - .github/copilot-instructions.md: project instructions used to guide Copilot-driven development.
 - Screenshots/: milestone images documenting the design and review process.
 - prompts.json: the Copilot prompts used in this project, kept as reusable templates, with the mode, milestone and matching screenshots for each.
@@ -93,13 +94,15 @@ Milestone 7: Theme and responsive layout. The final UI polish focused on dark mo
 
 Milestone 8: Number tracking (stand-out feature). Nine digit buttons under the board show how many of each digit remain, highlight every matching cell when clicked, and are marked complete once all nine are placed. It uses a single delegated click handler and updates after input, hints and new games. Screenshots: 09_number_tracking_prompt.png, 09_number_tracking_result.png, 09_number_tracking_ui.png.
 
+Milestone 9: Instruction file and accessibility review. Copilot Chat confirmed it follows the project instruction file, which lives at .github/copilot-instructions.md, where Copilot loads it automatically, with a visible copy at instruction.md in the repository root (Screenshots/10_instruction_file_used.png). I then asked Copilot for a WCAG 2.1 AA review, applied part of it and rejected part of it (Screenshots/10_wcag_suggestions.png, 10_wcag_review_prompt_and_answer.png, 10_evaluation_code_comment.png).
+
 ### Suggestions I evaluated, changed or rejected
 
-- Extra clues for infeasible puzzles (rejected). Copilot's plan for the unique-solution generator suggested returning a puzzle with extra clues when the requested clue count could not be reached. I rejected that because the game would silently hand out an easier puzzle than the one requested. The implementation instead raises ValueError in sudoku_logic.py, and /new turns it into a JSON 500 error with a clear message (see the Milestone 2 plan screenshots).
+- Plan review (accepted after checking). In Ask mode, Copilot proposed raising ValueError for clue counts it could not reach, instead of returning a puzzle with extra clues, because extra clues would break the existing exact-clue-count tests. I checked that against the tests, agreed, and had /new turn the error into a JSON 500 response (Screenshots/02_unique_solution_plan-3.png).
 - Difficulty clue counts (reviewed and tuned). I left a review comment above DIFFICULTY_CLUES in sudoku_logic.py (Screenshots/03_difficulty_comment_review.png). I chose 28 clues for Hard after timing generation at 40, 32, 28 and 26 clues (Screenshots/02_unique_solution_timing.png), because 26 clues was noticeably slower.
 - Missing import in generated tests (fixed). In two milestones Copilot generated a test file that used pytest without importing it and failed with a NameError. I had Copilot fix it and re-run the suite.
 - Hint test assumption (corrected). Copilot's first /hint test assumed the hint would land on the first empty cell. I had it change the assertion to check that the returned cell is editable and that its value matches the solution.
-
+- WCAG review (accepted in part). Copilot suggested 12 changes. I accepted 1 (visible focus styles), 3 (status text not conveyed by colour alone), 4 (live status messages), 5 (labelled score form and difficulty selector) and 7 (numeric input mode); suggestion 2 (cell labels) was already in place. I rejected suggestion 6 (custom arrow-key navigation model) because the cells are native inputs that are already keyboard-reachable with Tab, and the change is large and risks breaking the delegated input listener. I left 8 to 12 for a later pass to keep this change small. See Screenshots/10_wcag_suggestions.png, 10_wcag_review_prompt_and_answer.png and 10_evaluation_code_comment.png.
 
 ## 8. Screenshots of the finished game
 
