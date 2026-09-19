@@ -1,3 +1,5 @@
+import pytest
+
 import sudoku_logic
 
 
@@ -8,15 +10,33 @@ def test_get_index_renders_game_page(client):
     assert b'Sudoku Game' in response.data
 
 
-def test_get_new_returns_puzzle(client):
-    response = client.get('/new?clues=40')
+@pytest.mark.parametrize('difficulty, clues', [('easy', 40), ('medium', 32), ('hard', 28)])
+def test_get_new_returns_puzzle_for_difficulty(client, difficulty, clues):
+    response = client.get(f'/new?difficulty={difficulty}')
 
     assert response.status_code == 200
     payload = response.get_json()
+    assert payload['difficulty'] == difficulty
     puzzle = payload['puzzle']
     assert len(puzzle) == sudoku_logic.SIZE
     assert all(len(row) == sudoku_logic.SIZE for row in puzzle)
-    assert sum(cell != sudoku_logic.EMPTY for row in puzzle for cell in row) == 40
+    assert sum(cell != sudoku_logic.EMPTY for row in puzzle for cell in row) == clues
+
+
+def test_get_new_defaults_to_medium(client):
+    response = client.get('/new')
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['difficulty'] == 'medium'
+    assert sum(cell != sudoku_logic.EMPTY for row in payload['puzzle'] for cell in row) == 32
+
+
+def test_get_new_rejects_unknown_difficulty(client):
+    response = client.get('/new?difficulty=impossible')
+
+    assert response.status_code == 400
+    assert response.get_json()['error']
 
 
 def test_post_check_reports_incorrect_cells(client):

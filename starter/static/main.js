@@ -48,10 +48,21 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
-  const res = await fetch('/new');
-  const data = await res.json();
-  renderPuzzle(data.puzzle);
-  document.getElementById('message').innerText = '';
+  const difficulty = document.getElementById('difficulty').value;
+  const msg = document.getElementById('message');
+  try {
+    const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Unable to start a new game.');
+    }
+    renderPuzzle(data.puzzle);
+    msg.style.color = '';
+    msg.innerText = '';
+  } catch (error) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = error.message || 'Network error. Please try again.';
+  }
 }
 
 async function checkSolution() {
@@ -99,6 +110,7 @@ async function checkSolution() {
 // Wire buttons
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
+  document.getElementById('difficulty').addEventListener('change', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   // initialize
   newGame();
