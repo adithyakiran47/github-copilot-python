@@ -15,14 +15,38 @@ function createBoardElement() {
       input.className = 'sudoku-cell';
       input.dataset.row = i;
       input.dataset.col = j;
-      input.addEventListener('input', (e) => {
-        const val = e.target.value.replace(/[^1-9]/g, '');
-        e.target.value = val;
-      });
       rowDiv.appendChild(input);
     }
     boardDiv.appendChild(rowDiv);
   }
+}
+
+function updateConflicts() {
+  const inputs = Array.from(document.querySelectorAll('#sudoku-board input'));
+  const values = inputs.map((input) => input.value);
+  inputs.forEach((input, index) => {
+    const value = values[index];
+    if (!value) {
+      input.classList.remove('conflict');
+      return;
+    }
+
+    const row = Number(input.dataset.row);
+    const col = Number(input.dataset.col);
+    // A duplicate is conflicting when it shares any Sudoku unit with this cell.
+    const hasConflict = inputs.some((other, otherIndex) => {
+      if (otherIndex === index || values[otherIndex] !== value) return false;
+      const otherRow = Number(other.dataset.row);
+      const otherCol = Number(other.dataset.col);
+      return (
+        otherRow === row
+        || otherCol === col
+        || (Math.floor(otherRow / 3) === Math.floor(row / 3)
+          && Math.floor(otherCol / 3) === Math.floor(col / 3))
+      );
+    });
+    input.classList.toggle('conflict', hasConflict);
+  });
 }
 
 function renderPuzzle(puz) {
@@ -92,15 +116,16 @@ async function checkSolution() {
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
+    inp.classList.remove('incorrect');
     if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
-    if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
-    }
+    if (incorrect.has(idx)) inp.classList.add('incorrect');
   }
-  if (incorrect.size === 0) {
+  if (data.complete) {
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
+  } else if (incorrect.size === 0) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = 'Keep going! The board is incomplete.';
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect.';
@@ -109,6 +134,11 @@ async function checkSolution() {
 
 // Wire buttons
 window.addEventListener('load', () => {
+  document.getElementById('sudoku-board').addEventListener('input', (event) => {
+    if (!event.target.matches('input.sudoku-cell') || event.target.disabled) return;
+    event.target.value = event.target.value.replace(/[^1-9]/g, '').slice(0, 1);
+    updateConflicts();
+  });
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('difficulty').addEventListener('change', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);

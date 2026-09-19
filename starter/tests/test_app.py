@@ -47,11 +47,30 @@ def test_post_check_reports_incorrect_cells(client):
     correct_response = client.post('/check', json={'board': solution})
 
     assert correct_response.status_code == 200
-    assert correct_response.get_json() == {'incorrect': []}
+    assert correct_response.get_json() == {'incorrect': [], 'complete': True}
 
     submitted_board = [row[:] for row in solution]
     submitted_board[0][0] = (submitted_board[0][0] % sudoku_logic.SIZE) + 1
     incorrect_response = client.post('/check', json={'board': submitted_board})
 
     assert incorrect_response.status_code == 200
-    assert incorrect_response.get_json()['incorrect'] == [[0, 0]]
+    assert incorrect_response.get_json() == {'incorrect': [[0, 0]], 'complete': False}
+
+
+def test_post_check_does_not_flag_empty_cells(client):
+    client.get('/new')
+    from app import CURRENT
+
+    response = client.post('/check', json={'board': CURRENT['puzzle']})
+
+    assert response.status_code == 200
+    assert response.get_json() == {'incorrect': [], 'complete': False}
+
+
+def test_post_check_rejects_invalid_board_shape(client):
+    client.get('/new')
+
+    response = client.post('/check', json={'board': []})
+
+    assert response.status_code == 400
+    assert response.get_json()['error']
