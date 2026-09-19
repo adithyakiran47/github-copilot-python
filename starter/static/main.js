@@ -4,6 +4,7 @@ let puzzle = [];
 let hintCount = 0;
 let elapsedSeconds = 0;
 let timerInterval = null;
+let selectedDigit = null;
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -110,9 +111,41 @@ function updateConflicts() {
   });
 }
 
+function renderDigitTracker() {
+  const tracker = document.getElementById('digit-tracker');
+  const inputs = Array.from(document.querySelectorAll('#sudoku-board input'));
+  const counts = Array(SIZE + 1).fill(0);
+  const hasConflicts = Array(SIZE + 1).fill(false);
+
+  inputs.forEach((input) => {
+    const value = Number(input.value);
+    if (value >= 1 && value <= SIZE) {
+      counts[value] += 1;
+      if (input.classList.contains('conflict')) hasConflicts[value] = true;
+      input.classList.toggle('match', selectedDigit === value);
+    } else {
+      input.classList.remove('match');
+    }
+  });
+
+  tracker.querySelectorAll('.digit-button').forEach((button) => {
+    const digit = Number(button.dataset.digit);
+    const remaining = SIZE - counts[digit];
+    const complete = remaining === 0 && !hasConflicts[digit];
+    button.querySelector('.digit-button-count').textContent = remaining;
+    button.classList.toggle('selected', selectedDigit === digit);
+    button.classList.toggle('completed', complete);
+    button.setAttribute('aria-pressed', selectedDigit === digit ? 'true' : 'false');
+    button.setAttribute('aria-label', complete
+      ? `${digit}: all placed`
+      : `${digit}: ${remaining} missing`);
+  });
+}
+
 function renderPuzzle(puz) {
   puzzle = puz;
   hintCount = 0;
+  selectedDigit = null;
   document.getElementById('hint-count').innerText = hintCount;
   createBoardElement();
   const boardDiv = document.getElementById('sudoku-board');
@@ -132,6 +165,8 @@ function renderPuzzle(puz) {
       }
     }
   }
+  updateConflicts();
+  renderDigitTracker();
   startTimer();
 }
 
@@ -237,6 +272,7 @@ async function requestHint() {
   hintCount += 1;
   document.getElementById('hint-count').innerText = hintCount;
   updateConflicts();
+  renderDigitTracker();
   msg.innerText = '';
 }
 
@@ -280,6 +316,14 @@ window.addEventListener('load', () => {
     if (!event.target.matches('input.sudoku-cell') || event.target.disabled) return;
     event.target.value = event.target.value.replace(/[^1-9]/g, '').slice(0, 1);
     updateConflicts();
+    renderDigitTracker();
+  });
+  document.getElementById('digit-tracker').addEventListener('click', (event) => {
+    const button = event.target.closest('.digit-button');
+    if (!button) return;
+    const digit = Number(button.dataset.digit);
+    selectedDigit = selectedDigit === digit ? null : digit;
+    renderDigitTracker();
   });
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('difficulty').addEventListener('change', newGame);

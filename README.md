@@ -22,6 +22,7 @@ The app is intentionally small and focused: the board state is kept in memory on
 - Alternating 3x3 colours: each 3x3 region alternates between two background styles for readability.
 - Responsive layout: the game layout collapses gracefully on narrower screens, keeping controls and board readable on mobile devices.
 - Completion message: when the puzzle is solved, the app shows a success message with elapsed time and hint count and asks for a name if the score qualifies for the Top 10.
+- Number tracking: buttons 1-9 show how many of each digit remain, highlight every matching cell, and are marked complete when all nine are placed.
 
 ## 3. Setup and run
 
@@ -90,12 +91,16 @@ Milestone 6: Local scoreboard and storage. Copilot assisted with the top-ten sco
 
 Milestone 7: Theme and responsive layout. The final UI polish focused on dark mode, alternated 3x3 box colours, and mobile-friendly sizing. Screenshots: 07_layout_theme_prompt.png, 07_dark_mode_ui.png, 07_light_mode_ui.png, 07_layout_theme_result-1.png, 07_layout_theme_result-2.png, 08_grid_colors_prompt.png, 08_grid_colors_result-1.png, 08_grid_colors_result-2.png, 08_mobile_view_ui.png.
 
+Milestone 8: Number tracking (stand-out feature).
+Screenshots: 09_number_tracking_prompt.png, 09_number_tracking_result.png, 09_number_tracking_ui.png
+
 ### Suggestions I evaluated, changed or rejected
 
 - Extra clues for infeasible puzzles (rejected). Copilot's plan for the unique-solution generator suggested returning a puzzle with extra clues when the requested clue count could not be reached. I rejected that because the game would silently hand out an easier puzzle than the one requested. The implementation instead raises ValueError in sudoku_logic.py, and /new turns it into a JSON 500 error with a clear message (see the Milestone 2 plan screenshots).
 - Difficulty clue counts (reviewed and tuned). I left a review comment above DIFFICULTY_CLUES in sudoku_logic.py (Screenshots/03_difficulty_comment_review.png). I chose 28 clues for Hard after timing generation at 40, 32, 28 and 26 clues (Screenshots/02_unique_solution_timing.png), because 26 clues was noticeably slower.
 - Missing import in generated tests (fixed). In two milestones Copilot generated a test file that used pytest without importing it and failed with a NameError. I had Copilot fix it and re-run the suite.
 - Hint test assumption (corrected). Copilot's first /hint test assumed the hint would land on the first empty cell. I had it change the assertion to check that the returned cell is editable and that its value matches the solution.
+- Unverified Copilot validation (checked by hand). For number tracking, Copilot reported that its browser check was unavailable and that its pytest run hung and was stopped. I ran the full test suite and tested the tracker in the browser myself, in light and dark mode and at 360px, before accepting the change.
 
 ## 8. Screenshots of the finished game
 

@@ -31,6 +31,14 @@
       <section class="board-panel" aria-labelledby="board-heading">
         <h2 id="board-heading" class="visually-hidden">Sudoku board</h2>
         <div id="sudoku-board"></div>
+        <div id="digit-tracker" class="digit-tracker" aria-label="Digit tracker">
+          {% for digit in range(1, 10) %}
+          <button class="digit-button" type="button" data-digit="{{ digit }}" aria-pressed="false" aria-label="{{ digit }}: 9 missing">
+            <span class="digit-button-value">{{ digit }}</span>
+            <span class="digit-button-count">9</span>
+          </button>
+          {% endfor %}
+        </div>
         <div class="board-meta" aria-label="Game status">
           <div><span class="meta-label">Time</span><strong id="timer">00:00</strong></div>
           <div><span class="meta-label">Hints</span><strong id="hint-count">0</strong></div>

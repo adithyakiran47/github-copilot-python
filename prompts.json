@@ -1,0 +1,151 @@
+{
+  "project": "Refactor a Sudoku Game written in Python Flask",
+  "description": "Copilot prompts used to build this project, kept as reusable templates. Each entry lists the Copilot mode, the milestone, and the screenshots in Screenshots/ that show its response.",
+  "instructions_file": ".github/copilot-instructions.md",
+  "prompts": [
+    {
+      "id": "test-framework",
+      "title": "Set up a pytest framework before changing code",
+      "mode": "Agent",
+      "used_in": "Milestone 1",
+      "screenshots": [
+        "01_testing_framework_prompt.png",
+        "01_testing_framework_result-1.png",
+        "01_testing_framework_result-2.png"
+      ],
+      "template": "Set up a pytest testing framework for this Flask Sudoku project BEFORE I change any code.\n\n- Put tests in starter/tests/ with a conftest.py so imports of sudoku_logic and app work.\n- Write tests for sudoku_logic.py: is_safe, fill_board (produces a valid complete grid), and generate_puzzle (correct clue count, solution is valid, puzzle cells match the solution).\n- Write tests for the Flask routes in app.py using the Flask test client: GET /, GET /new, POST /check.\n- Add pytest to requirements.txt.\n- Do NOT modify app.py or sudoku_logic.py. All tests must pass against the current code.\n- Tell me the exact command to run the tests."
+    },
+    {
+      "id": "unique-solution-plan",
+      "title": "Ask for a plan (no code changes) for unique-solution puzzles",
+      "mode": "Ask",
+      "used_in": "Milestone 2",
+      "screenshots": [
+        "02_unique_solution_plan-1.png",
+        "02_unique_solution_plan-2.png",
+        "02_unique_solution_plan-3.png"
+      ],
+      "template": "I need every generated Sudoku puzzle to have exactly one unique solution. Look at generate_puzzle and remove_cells in sudoku_logic.py. Propose a plan, without changing code:\n\n1. A count_solutions(board, limit=2) solver that stops early once it finds `limit` solutions.\n2. A way to remove cells one at a time and only keep a removal if the puzzle still has exactly one solution.\n3. How to handle clue counts that are too low to reach while staying unique.\n4. How to keep generate_puzzle(clues) returning (puzzle, solution) so app.py and the existing tests don't break. Keep it fast enough for a web request."
+    },
+    {
+      "id": "unique-solution-implement",
+      "title": "Implement the reviewed plan, with tests and a timing check",
+      "mode": "Agent",
+      "used_in": "Milestone 2",
+      "screenshots": [
+        "02_unique_solution_prompt.png",
+        "02_unique_solution_result-1.png",
+        "02_unique_solution_result-2.png",
+        "02_unique_solution_tests.png",
+        "02_unique_solution_timing.png"
+      ],
+      "template": "Implement this plan in sudoku_logic.py:\n\n- count_solutions(board, limit=2): backtracking solver that stops as soon as it finds `limit` solutions, picks the empty cell with the fewest legal candidates, and restores every cell it changes.\n- remove_cells: shuffle all cell coordinates once, try clearing each filled cell, keep the removal only if count_solutions(board, 2) == 1, and stop when the requested clue count is reached.\n- generate_puzzle(clues=35): keep returning (puzzle, solution). If the clue count isn't reached, retry with a fresh solved grid up to 20 times, then raise ValueError with a clear message. Raise ValueError immediately if clues < 17 or clues > 81.\n- Do NOT edit app.py.\n- Add pytest tests in tests/test_sudoku_logic.py: several generated puzzles (35 and 28 clues) each have exactly one solution; count_solutions on an empty board with limit=2 returns 2 (multiple solutions detected); out-of-range clue counts raise ValueError; all existing tests still pass.\n- Run the tests, then time generating 10 puzzles with 26 clues and tell me the result.\nAdd type hints and short docstrings, following the repo's copilot-instructions.md."
+    },
+    {
+      "id": "difficulty-selector",
+      "title": "Difficulty selector with backend clue mapping and JSON errors",
+      "mode": "Agent",
+      "used_in": "Milestone 3",
+      "screenshots": [
+        "03_difficulty_selector_prompt.png",
+        "03_difficulty_comment_review.png",
+        "03_difficulty_selector_result-1.png",
+        "03_difficulty_selector_result-2.png",
+        "03_difficulty_selector_result-3.png",
+        "03_difficulty_tests.png"
+      ],
+      "template": "Add a difficulty selector to the Sudoku app.\n\nBackend:\n- In sudoku_logic.py add DIFFICULTY_CLUES = {\"easy\": 40, \"medium\": 32, \"hard\": 28}, with a comment above it: \"Hard is 28 instead of 26 because 26 clues generated noticeably slower in my timing tests.\"\n- Change /new in app.py to accept ?difficulty=easy|medium|hard (default \"medium\") and look up the clue count from DIFFICULTY_CLUES. Stop using a client-supplied `clues` value.\n- Unknown difficulty -> JSON {\"error\": \"...\"} with status 400. If generate_puzzle raises ValueError, return JSON {\"error\": \"...\"} with status 500. Never return an HTML error page.\n- Include the chosen difficulty in the /new JSON response.\n\nFrontend (templates/index.html and static/main.js):\n- Add a <select id=\"difficulty\"> with a <label>, options Easy, Medium (selected by default), Hard.\n- Changing it, or clicking New Game, starts a new game at the selected difficulty. The board loads on page load using Medium.\n- Wrap the fetch in try/catch and show server errors or network failures in the #message element.\n\nTests: update tests/ so /new returns 40/32/28 clues for easy/medium/hard, defaults to medium, and returns 400 for an unknown difficulty. Keep all existing tests passing. Run the tests and report the result. Follow .github/copilot-instructions.md and don't remove any existing features."
+    },
+    {
+      "id": "validation-and-check",
+      "title": "Event delegation, conflict highlighting and a stricter /check",
+      "mode": "Agent",
+      "used_in": "Milestone 4",
+      "screenshots": [
+        "04_input_validation_prompt.png",
+        "04_conflict_highlight_ui.png",
+        "04_input_validation_result-1.png",
+        "04_input_validation_result-2.png",
+        "04_input_validation_tests.png"
+      ],
+      "template": "Improve the Sudoku frontend and /check logic.\n\n1. Use event delegation: one 'input' listener on #sudoku-board instead of per-cell listeners. Only digits 1-9 allowed.\n2. Live feedback: on every input, add class \"conflict\" to cells that duplicate another value in the same row, column or 3x3 box; remove it when resolved. Prefilled cells stay locked.\n3. Rename the \"Check Solution\" button to \"Check\". /check must only flag FILLED cells that differ from the solution (not empty cells) and return {\"incorrect\": [...], \"complete\": true/false}, where complete means the board is full and correct. Clear old highlights before applying new ones.\n4. When complete, show a congratulatory message in #message.\n5. Comment non-obvious logic, keep JSON errors with proper status codes, and add tests: empty cells are not flagged, complete is true for the full solution. Run all tests. Don't remove existing features."
+    },
+    {
+      "id": "hint-and-timer",
+      "title": "Hint button, hint counter, single-interval timer and completion message",
+      "mode": "Agent",
+      "used_in": "Milestone 5",
+      "screenshots": [
+        "05_hint_timer_prompt.png",
+        "05_hint_ui.png",
+        "05_completion_message_ui.png",
+        "05_hint_timer_result-1.png",
+        "05_hint_timer_result-2.png",
+        "05_hint_timer_result-3.png",
+        "05_hint_timer_result-4.png",
+        "05_hint_timer_tests.png"
+      ],
+      "template": "Add a Hint button and a timer.\n\nHint:\n- Add a \"Hint\" button and a \"Hints: 0\" counter. Add POST /hint that takes the current board, picks one empty or wrong editable cell, and returns {\"row\",\"col\",\"value\"} from the stored solution. Return JSON error 400 if no game is in progress or there is nothing to hint.\n- The frontend fills that cell, gives it class \"hinted\" (its own distinct colour), locks it (disabled), and increments the counter. The counter resets on a new game.\n\nTimer:\n- Add <span id=\"timer\">00:00</span>. It starts when a new puzzle is rendered, updates every second as mm:ss, resets on New Game or difficulty change, and stops when the puzzle is solved. Use a single setInterval and clear it on reset so two timers never stack.\n\nCompletion message: \"Congratulations! Solved in mm:ss with N hints.\"\nAdd tests for /hint (returns the solution's value for an empty cell; 400 with no game). Run all tests. Follow .github/copilot-instructions.md and don't remove existing features."
+    },
+    {
+      "id": "top10-localstorage",
+      "title": "Top 10 scoreboard in localStorage with safe rendering",
+      "mode": "Agent",
+      "used_in": "Milestone 6",
+      "screenshots": [
+        "06_scoreboard_prompt.png",
+        "06_scoreboard_ui.png",
+        "06_localstorage_devtools.png",
+        "06_scoreboard_result-1.png",
+        "06_scoreboard_result-2.png",
+        "06_scoreboard_result-3.png",
+        "06_scoreboard_result-4.png",
+        "06_scoreboard_tests.png"
+      ],
+      "template": "Add a Top 10 scoreboard saved in localStorage.\n\n- Create static/scoreboard.js (loaded before main.js) with pure, documented functions: loadScores(), saveScores(scores), isTopTen(seconds, scores), addScore(entry, scores). addScore returns the updated list sorted by fastest time (ties: fewer hints first), capped at 10. An entry is {name, seconds, difficulty, hints, date}.\n- Use one localStorage key, \"sudokuTop10\". Wrap all reads and writes in try/catch. If storage is unavailable or the JSON is corrupt, fall back to an empty list and show a message instead of crashing.\n- When the puzzle is solved and the score makes the Top 10, show the congratulation message plus a name input (max 20 chars) and a Save button. Empty name becomes \"Anonymous\". If the score doesn't qualify, only show the congratulation message.\n- Render the list in the existing scoreboard table (Rank, Name, Time mm:ss, Difficulty, Hints) using textContent, never innerHTML, so names can't inject HTML. Render it on page load so scores persist after a refresh.\n- Keep existing behaviour. Update index.html and styles.css (readable in light and dark). Explain your approach briefly and run the tests."
+    },
+    {
+      "id": "layout-and-dark-mode",
+      "title": "Three-column layout with a body-class dark mode toggle",
+      "mode": "Agent",
+      "used_in": "Milestone 7",
+      "screenshots": [
+        "07_layout_theme_prompt.png",
+        "07_layout_theme_result-1.png",
+        "07_layout_theme_result-2.png",
+        "07_light_mode_ui.png",
+        "07_dark_mode_ui.png"
+      ],
+      "template": "Restyle the Sudoku page in starter/templates/index.html and starter/static/styles.css, and add a dark mode toggle in main.js. Do not remove or break any existing feature (difficulty, Check, Hint, timer, scoreboard).\n\nLayout:\n- Title centered at the top.\n- A round icon button (sun/moon) in the top-right corner toggles dark mode.\n- Three columns on desktop: left = difficulty select + New Game; center = the board; right = Hint + Check.\n- Timer and hints counter directly below the board.\n- Top 10 scoreboard at the bottom, full width.\n- Under 700px wide, stack everything in one column.\n\nTheming:\n- Define all colours as CSS variables on :root, and override them under body.dark-mode.\n- Toggle the dark-mode class on <body>. Do NOT use a media query only.\n- Save the choice in localStorage (wrapped in try/catch). On first visit, use prefers-color-scheme.\n- Make sure text/background contrast meets WCAG AA in both themes.\n\nAdd or update pytest tests only if backend changes. Then explain what you changed."
+    },
+    {
+      "id": "grid-colours-responsive",
+      "title": "Alternating 3x3 box colours and a responsive board",
+      "mode": "Agent",
+      "used_in": "Milestone 7",
+      "screenshots": [
+        "08_grid_colors_prompt.png",
+        "08_grid_colors_result-1.png",
+        "08_grid_colors_result-2.png",
+        "08_mobile_view_ui.png"
+      ],
+      "template": "Update the Sudoku board styling in starter/static/styles.css (and main.js or index.html only if needed to add classes/attributes). Do not break any existing feature (Hint, Check, conflict highlighting, timer, scoreboard, dark mode toggle).\n\n3x3 box colours:\n- Alternate the background colour of the nine 3x3 boxes in a checkerboard pattern (box is \"A\" when (boxRow + boxCol) is even, otherwise \"B\").\n- Define the two colours as CSS variables (--box-a, --box-b) with separate values under :root and body.dark-mode, both meeting WCAG AA contrast with the cell text.\n- Draw thicker lines between 3x3 boxes using box-shadow or outline, NOT by changing border width, so the layout never shifts.\n- Prefilled cells, hinted cells, conflict cells and incorrect cells must stay clearly visible on both box colours in both themes.\n\nResponsive board:\n- Size the board with clamp()/vw so it fits from 360px wide phones up to desktop (for example width: min(92vw, 480px), square cells, font-size scaled with the cell size).\n- No horizontal page scrolling at 360px.\n- Keep the stacked one-column layout under 700px.\n\nExplain what you changed. Add or update pytest tests only if backend code changes."
+    },
+    {
+      "id": "review-a-suggestion",
+      "title": "Reusable: make Copilot justify a change before it edits",
+      "mode": "Ask",
+      "used_in": "Reusable template",
+      "screenshots": [],
+      "template": "Before changing any files, review your own suggestion for [FEATURE OR FILE]:\n\n1. List the assumptions it makes about the existing code.\n2. Name one alternative approach and the trade-off between the two.\n3. Say what could break (existing tests, routes, JS element IDs) and how we would detect it.\n4. Recommend one option and explain why.\n\nDo not edit any files yet."
+    },
+    {
+      "id": "small-change-with-tests",
+      "title": "Reusable: small, test-backed change that follows the instruction file",
+      "mode": "Agent",
+      "used_in": "Reusable template",
+      "screenshots": [],
+      "template": "[DESCRIBE THE CHANGE].\n\nConstraints:\n- Follow .github/copilot-instructions.md.\n- Keep routes thin: game rules stay in sudoku_logic.py, routes return JSON errors with proper status codes.\n- Do not remove or break any existing feature.\n- Add or update pytest tests for backend changes, run the full suite with the project's virtual environment, and report the result.\n- Finish with a short summary of the files you changed."
+    }
+  ]
+}
